@@ -5,6 +5,7 @@ import Tabs from './components/Tabs'
 import Pagination from './components/Pagination'
 import VagaCard from './components/VagaCard'
 import Dropdown from './components/Dropdown'
+import Toast from './components/Toast'
 import { vagas } from './data/vagas'
 
 const perguntasFaq = [
@@ -87,6 +88,7 @@ function App() {
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [areaSelecionada, setAreaSelecionada] = useState('Todas')
   const [paginaAtual, setPaginaAtual] = useState(1)
+  const [toasts, setToasts] = useState([])
 
   const inputArquivoRef = useRef(null)
 
@@ -110,8 +112,20 @@ function App() {
   }, [enviando])
 
   useEffect(() => {
-    if (progresso === 100) setEnviando(false)
+    if (progresso === 100) {
+      setEnviando(false)
+      mostrarToast('sucesso', `${nomeArquivo} enviado com sucesso!`)
+    }
   }, [progresso])
+
+  function mostrarToast(tipo, mensagem) {
+    const novoToast = { id: Date.now() + Math.random(), tipo, mensagem }
+    setToasts((lista) => [...lista, novoToast])
+  }
+
+  function removerToast(id) {
+    setToasts((lista) => lista.filter((toast) => toast.id !== id))
+  }
 
   function abrirSeletorDeArquivo() {
     inputArquivoRef.current.click()
@@ -122,7 +136,10 @@ function App() {
     evento.target.value = ''
 
     if (!arquivo) return
-    if (arquivo.type !== 'application/pdf') return
+    if (arquivo.type !== 'application/pdf') {
+      mostrarToast('erro', 'Envie o currículo em formato PDF.')
+      return
+    }
 
     setNomeArquivo(arquivo.name)
     setProgresso(0)
@@ -132,6 +149,22 @@ function App() {
   function mudarArea(novaArea) {
     setAreaSelecionada(novaArea)
     setPaginaAtual(1)
+
+    const quantidade =
+      novaArea === 'Todas'
+        ? vagas.length
+        : vagas.filter((vaga) => vaga.area === novaArea).length
+
+    mostrarToast('info', `${quantidade} vagas encontradas.`)
+  }
+
+  function candidatar() {
+    if (progresso !== 100) {
+      mostrarToast('erro', 'Envie seu currículo antes de se candidatar.')
+      return
+    }
+
+    mostrarToast('sucesso', 'Candidatura enviada para a TechNova!')
   }
 
   let rotuloUpload = 'Nenhum currículo enviado'
@@ -229,6 +262,12 @@ function App() {
           <p className="subtitulo">TechNova · Salvador, BA · Híbrido</p>
 
           <Tabs abas={abasVaga} rotulo="Detalhes da vaga" />
+
+          <div className="acoes">
+            <button className="botao" onClick={candidatar}>
+              Candidatar-se
+            </button>
+          </div>
         </section>
 
         <section className="cartao cartao-largo" aria-labelledby="titulo-faq">
@@ -238,6 +277,17 @@ function App() {
           <Accordion itens={perguntasFaq} />
         </section>
       </main>
+
+      <div className="toasts" aria-live="polite">
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            tipo={toast.tipo}
+            mensagem={toast.mensagem}
+            aoFechar={() => removerToast(toast.id)}
+          />
+        ))}
+      </div>
     </>
   )
 }
