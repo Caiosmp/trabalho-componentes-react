@@ -1,6 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ProgressBar from './components/ProgressBar'
 import Accordion from './components/Accordion'
+import Tabs from './components/Tabs'
+import Pagination from './components/Pagination'
+import VagaCard from './components/VagaCard'
+import { vagas } from './data/vagas'
 
 const perguntasFaq = [
   {
@@ -30,10 +34,55 @@ const perguntasFaq = [
   },
 ]
 
+const abasVaga = [
+  {
+    titulo: 'Descrição',
+    conteudo: (
+      <p>
+        Você vai atuar ao lado do time de produto no desenvolvimento das telas do
+        sistema de gestão de clientes da empresa, transformando protótipos em
+        interfaces responsivas e acessíveis. O estágio inclui mentoria semanal
+        com uma pessoa desenvolvedora sênior.
+      </p>
+    ),
+  },
+  {
+    titulo: 'Requisitos',
+    conteudo: (
+      <ul>
+        <li>Cursando Engenharia de Software, Ciência da Computação ou áreas afins</li>
+        <li>Conhecimento básico de HTML, CSS e JavaScript</li>
+        <li>Noções de React e de versionamento com Git</li>
+        <li>Disponibilidade de 6 horas por dia</li>
+      </ul>
+    ),
+  },
+  {
+    titulo: 'Benefícios',
+    conteudo: (
+      <ul>
+        <li>Bolsa-auxílio de R$ 1.800,00</li>
+        <li>Vale-transporte e vale-refeição</li>
+        <li>Trabalho híbrido, com 2 dias presenciais por semana</li>
+        <li>Possibilidade de efetivação ao final do estágio</li>
+      </ul>
+    ),
+  },
+]
+
+const VAGAS_POR_PAGINA = 4
 
 function App() {
   const [progresso, setProgresso] = useState(0)
   const [enviando, setEnviando] = useState(false)
+  const [nomeArquivo, setNomeArquivo] = useState('')
+  const [paginaAtual, setPaginaAtual] = useState(1)
+
+  const inputArquivoRef = useRef(null)
+
+  const totalPaginas = Math.ceil(vagas.length / VAGAS_POR_PAGINA)
+  const inicio = (paginaAtual - 1) * VAGAS_POR_PAGINA
+  const vagasDaPagina = vagas.slice(inicio, inicio + VAGAS_POR_PAGINA)
 
   useEffect(() => {
     if (!enviando) return
@@ -45,19 +94,35 @@ function App() {
     return () => clearInterval(intervalo)
   }, [enviando])
 
-    useEffect(() => {
-        if (progresso === 100) setEnviando(false)
-            }, [progresso])
+  useEffect(() => {
+    if (progresso === 100) setEnviando(false)
+  }, [progresso])
 
-    function iniciarEnvio() {
-        setProgresso(0)
-        setEnviando(true)
-        }
+  function abrirSeletorDeArquivo() {
+    inputArquivoRef.current.click()
+  }
 
-        let rotuloUpload = 'Nenhum currículo enviado'
-        if (enviando) rotuloUpload = 'enviando curriculo.pdf'
-        else if (progresso === 100) rotuloUpload = 'Currículo enviado!'
-     return (
+  function aoEscolherArquivo(evento) {
+    const arquivo = evento.target.files[0]
+    evento.target.value = ''
+
+    if (!arquivo) return
+    if (arquivo.type !== 'application/pdf') return
+
+    setNomeArquivo(arquivo.name)
+    setProgresso(0)
+    setEnviando(true)
+  }
+
+  let rotuloUpload = 'Nenhum currículo enviado'
+  if (enviando) rotuloUpload = `Enviando ${nomeArquivo}...`
+  else if (progresso === 100) rotuloUpload = `${nomeArquivo} enviado!`
+
+  let textoBotao = 'Escolher PDF'
+  if (enviando) textoBotao = 'Enviando...'
+  else if (progresso === 100) textoBotao = 'Trocar currículo'
+
+  return (
     <>
       <header className="hero">
         <div className="barra">
@@ -79,19 +144,64 @@ function App() {
       </header>
 
       <main className="conteudo">
-        <section className="cartao" aria-labelledby="titulo-upload">
-          <h2 id="titulo-upload">Seu currículo</h2>
-          <p className="subtitulo">Envie o PDF para poder se candidatar</p>
+        <section className="cartao cartao-largo cartao-upload" aria-labelledby="titulo-upload">
+          <div>
+            <h2 id="titulo-upload">Seu currículo</h2>
+            <p className="subtitulo">Envie o PDF para poder se candidatar</p>
+          </div>
 
-          <ProgressBar valor={progresso} rotulo={rotuloUpload} />
+          <div>
+            <ProgressBar valor={progresso} rotulo={rotuloUpload} />
 
-          <div className="acoes">
-            <button className="botao" onClick={iniciarEnvio} disabled={enviando}>
-              {enviando ? 'Enviando...' : 'Enviar currículo'}
-            </button>
+            <input
+              ref={inputArquivoRef}
+              type="file"
+              accept="application/pdf"
+              hidden
+              onChange={aoEscolherArquivo}
+            />
+
+            <div className="acoes">
+              <button
+                className="botao"
+                onClick={abrirSeletorDeArquivo}
+                disabled={enviando}
+              >
+                {textoBotao}
+              </button>
+            </div>
           </div>
         </section>
-            <section className="cartao cartao-largo" aria-labelledby="titulo-faq">
+
+        <section className="cartao cartao-largo" aria-labelledby="titulo-vagas">
+          <h2 id="titulo-vagas">Vagas abertas</h2>
+          <p className="subtitulo">Estágios na área de tecnologia</p>
+
+          <ul className="lista-vagas">
+            {vagasDaPagina.map((vaga) => (
+              <VagaCard key={vaga.id} vaga={vaga} />
+            ))}
+          </ul>
+
+          <p className="resumo-vagas" aria-live="polite">
+            Mostrando {inicio + 1}–{inicio + vagasDaPagina.length} de {vagas.length} vagas
+          </p>
+
+          <Pagination
+            totalPaginas={totalPaginas}
+            paginaAtual={paginaAtual}
+            aoMudarPagina={setPaginaAtual}
+          />
+        </section>
+
+        <section className="cartao cartao-largo" aria-labelledby="titulo-vaga">
+          <h2 id="titulo-vaga">Estágio em Desenvolvimento Front-end</h2>
+          <p className="subtitulo">TechNova · Salvador, BA · Híbrido</p>
+
+          <Tabs abas={abasVaga} rotulo="Detalhes da vaga" />
+        </section>
+
+        <section className="cartao cartao-largo" aria-labelledby="titulo-faq">
           <h2 id="titulo-faq">Perguntas frequentes</h2>
           <p className="subtitulo">Tire suas dúvidas sobre o estágio</p>
 
@@ -103,4 +213,3 @@ function App() {
 }
 
 export default App
-    
