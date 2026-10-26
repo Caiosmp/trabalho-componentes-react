@@ -4,6 +4,7 @@ import Accordion from './components/Accordion'
 import Tabs from './components/Tabs'
 import Pagination from './components/Pagination'
 import VagaCard from './components/VagaCard'
+import Dropdown from './components/Dropdown'
 import { vagas } from './data/vagas'
 
 const perguntasFaq = [
@@ -72,17 +73,31 @@ const abasVaga = [
 
 const VAGAS_POR_PAGINA = 4
 
+const opcoesArea = [
+  { valor: 'Todas', texto: 'Todas as áreas' },
+  { valor: 'Front-end', texto: 'Front-end' },
+  { valor: 'Back-end', texto: 'Back-end' },
+  { valor: 'Dados', texto: 'Dados' },
+  { valor: 'UX', texto: 'UX / Design' },
+]
+
 function App() {
   const [progresso, setProgresso] = useState(0)
   const [enviando, setEnviando] = useState(false)
   const [nomeArquivo, setNomeArquivo] = useState('')
+  const [areaSelecionada, setAreaSelecionada] = useState('Todas')
   const [paginaAtual, setPaginaAtual] = useState(1)
 
   const inputArquivoRef = useRef(null)
 
-  const totalPaginas = Math.ceil(vagas.length / VAGAS_POR_PAGINA)
+  const vagasFiltradas =
+    areaSelecionada === 'Todas'
+      ? vagas
+      : vagas.filter((vaga) => vaga.area === areaSelecionada)
+
+  const totalPaginas = Math.ceil(vagasFiltradas.length / VAGAS_POR_PAGINA)
   const inicio = (paginaAtual - 1) * VAGAS_POR_PAGINA
-  const vagasDaPagina = vagas.slice(inicio, inicio + VAGAS_POR_PAGINA)
+  const vagasDaPagina = vagasFiltradas.slice(inicio, inicio + VAGAS_POR_PAGINA)
 
   useEffect(() => {
     if (!enviando) return
@@ -112,6 +127,11 @@ function App() {
     setNomeArquivo(arquivo.name)
     setProgresso(0)
     setEnviando(true)
+  }
+
+  function mudarArea(novaArea) {
+    setAreaSelecionada(novaArea)
+    setPaginaAtual(1)
   }
 
   let rotuloUpload = 'Nenhum currículo enviado'
@@ -177,6 +197,15 @@ function App() {
           <h2 id="titulo-vagas">Vagas abertas</h2>
           <p className="subtitulo">Estágios na área de tecnologia</p>
 
+          <div className="filtro-vagas">
+            <Dropdown
+              rotulo="Filtrar por área"
+              opcoes={opcoesArea}
+              valorSelecionado={areaSelecionada}
+              aoSelecionar={mudarArea}
+            />
+          </div>
+
           <ul className="lista-vagas">
             {vagasDaPagina.map((vaga) => (
               <VagaCard key={vaga.id} vaga={vaga} />
@@ -184,7 +213,8 @@ function App() {
           </ul>
 
           <p className="resumo-vagas" aria-live="polite">
-            Mostrando {inicio + 1}–{inicio + vagasDaPagina.length} de {vagas.length} vagas
+            Mostrando {inicio + 1}–{inicio + vagasDaPagina.length} de{' '}
+            {vagasFiltradas.length} vagas
           </p>
 
           <Pagination
