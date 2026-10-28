@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useContext } from 'react'
 import ProgressBar from './components/ProgressBar'
 import Accordion from './components/Accordion'
 import Tabs from './components/Tabs'
 import Pagination from './components/Pagination'
 import VagaCard from './components/VagaCard'
 import Dropdown from './components/Dropdown'
-import Toast from './components/Toast'
+import { ToastContext } from './context/ToastContext'
 import { vagas } from './data/vagas'
 
 const perguntasFaq = [
@@ -107,9 +107,9 @@ function App() {
   const [areaSelecionada, setAreaSelecionada] = useState('Todas')
   const [paginaAtual, setPaginaAtual] = useState(1)
   const [minhasHabilidades, setMinhasHabilidades] = useState([])
-  const [toasts, setToasts] = useState([])
 
   const inputArquivoRef = useRef(null)
+  const { mostrarToast } = useContext(ToastContext)
 
   const vagasFiltradas =
     areaSelecionada === 'Todas'
@@ -136,15 +136,6 @@ function App() {
       mostrarToast('sucesso', `${nomeArquivo} enviado com sucesso!`)
     }
   }, [progresso])
-
-  function mostrarToast(tipo, mensagem) {
-    const novoToast = { id: Date.now() + Math.random(), tipo, mensagem }
-    setToasts((lista) => [...lista, novoToast])
-  }
-
-  function removerToast(id) {
-    setToasts((lista) => lista.filter((toast) => toast.id !== id))
-  }
 
   function abrirSeletorDeArquivo() {
     inputArquivoRef.current.click()
@@ -331,17 +322,6 @@ function App() {
           <Accordion itens={perguntasFaq} />
         </section>
       </main>
-
-      <div className="toasts" aria-live="polite">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            tipo={toast.tipo}
-            mensagem={toast.mensagem}
-            aoFechar={() => removerToast(toast.id)}
-          />
-        ))}
-      </div>
     </>
   )
 }
