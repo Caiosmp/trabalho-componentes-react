@@ -82,12 +82,31 @@ const opcoesArea = [
   { valor: 'UX', texto: 'UX / Design' },
 ]
 
+const habilidadesDisponiveis = [
+  'HTML',
+  'CSS',
+  'JavaScript',
+  'React',
+  'Node.js',
+  'Java',
+  'API REST',
+  'SQL',
+  'Python',
+  'Excel',
+  'Estatística',
+  'Git',
+  'Figma',
+  'Prototipação',
+  'Pesquisa',
+]
+
 function App() {
   const [progresso, setProgresso] = useState(0)
   const [enviando, setEnviando] = useState(false)
   const [nomeArquivo, setNomeArquivo] = useState('')
   const [areaSelecionada, setAreaSelecionada] = useState('Todas')
   const [paginaAtual, setPaginaAtual] = useState(1)
+  const [minhasHabilidades, setMinhasHabilidades] = useState([])
   const [toasts, setToasts] = useState([])
 
   const inputArquivoRef = useRef(null)
@@ -158,6 +177,22 @@ function App() {
     mostrarToast('info', `${quantidade} vagas encontradas.`)
   }
 
+  function alternarHabilidade(habilidade) {
+    if (minhasHabilidades.includes(habilidade)) {
+      setMinhasHabilidades(minhasHabilidades.filter((item) => item !== habilidade))
+    } else {
+      setMinhasHabilidades([...minhasHabilidades, habilidade])
+    }
+  }
+
+  function calcularMatch(vaga) {
+    const quantasTenho = vaga.habilidades.filter((habilidade) =>
+      minhasHabilidades.includes(habilidade)
+    ).length
+
+    return Math.round((quantasTenho / vaga.habilidades.length) * 100)
+  }
+
   function candidatar() {
     if (progresso !== 100) {
       mostrarToast('erro', 'Envie seu currículo antes de se candidatar.')
@@ -226,6 +261,25 @@ function App() {
           </div>
         </section>
 
+        <section className="cartao cartao-largo" aria-labelledby="titulo-habilidades">
+          <h2 id="titulo-habilidades">Suas habilidades</h2>
+          <p className="subtitulo">Marque o que você sabe para ver a compatibilidade com cada vaga</p>
+
+          <ul className="habilidades">
+            {habilidadesDisponiveis.map((habilidade) => (
+              <li key={habilidade}>
+                <button
+                  className={`habilidade ${minhasHabilidades.includes(habilidade) ? 'marcada' : ''}`}
+                  aria-pressed={minhasHabilidades.includes(habilidade)}
+                  onClick={() => alternarHabilidade(habilidade)}
+                >
+                  {habilidade}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <section className="cartao cartao-largo" aria-labelledby="titulo-vagas">
           <h2 id="titulo-vagas">Vagas abertas</h2>
           <p className="subtitulo">Estágios na área de tecnologia</p>
@@ -241,7 +295,7 @@ function App() {
 
           <ul className="lista-vagas">
             {vagasDaPagina.map((vaga) => (
-              <VagaCard key={vaga.id} vaga={vaga} />
+              <VagaCard key={vaga.id} vaga={vaga} match={calcularMatch(vaga)} />
             ))}
           </ul>
 

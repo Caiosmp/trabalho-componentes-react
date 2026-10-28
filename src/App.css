@@ -201,6 +201,34 @@ button {
   margin-bottom: 0;
 }
 
+/* ===== Habilidades ===== */
+.habilidades {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.habilidade {
+  padding: 6px 12px;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  color: var(--texto);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.habilidade:hover {
+  border-color: var(--destaque);
+}
+
+.habilidade.marcada {
+  background: var(--destaque);
+  border-color: var(--destaque);
+  color: #fff;
+}
+
 /* ===== Acordeão ===== */
 .acordeao-item {
   border-bottom: 1px solid var(--borda);

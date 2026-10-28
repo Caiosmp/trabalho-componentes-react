@@ -1,4 +1,6 @@
-function VagaCard({ vaga }) {
+import ProgressBar from './ProgressBar'
+
+function VagaCard({ vaga, match }) {
   return (
     <li className="vaga">
       <div className="vaga-topo">
@@ -15,6 +17,8 @@ function VagaCard({ vaga }) {
           <li key={habilidade}>{habilidade}</li>
         ))}
       </ul>
+
+      <ProgressBar valor={match} rotulo="Compatibilidade" />
     </li>
   )
 }
