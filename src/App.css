@@ -132,6 +132,12 @@ button {
   grid-column: 1 / -1;
 }
 
+.conteudo > *,
+.cartao-upload > *,
+.lista-vagas > * {
+  min-width: 0;
+}
+
 /* ===== Botão ===== */
 .botao {
   border: none;
@@ -609,7 +615,9 @@ button {
 
 .toast-mensagem {
   flex: 1;
+  min-width: 0;
   font-size: 0.9rem;
+  overflow-wrap: anywhere;
 }
 
 .toast-fechar {
